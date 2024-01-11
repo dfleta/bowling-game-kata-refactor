@@ -4,12 +4,12 @@ public class ScoreCard {
 
     // Properties of the class //
 
-    private int strike = 10;
-    private int spare = 10;
-    private int zero = 0;
-    private String scoreCard;
-    private int totalScore;
-    private String pins = "-123456789";
+    // private final int STRIKE = 10;
+    // private final int SPARE = 10;
+    // private final int ZERO = 0;
+    private String scoreCard = "";
+    private int totalScore = 0;
+    private final String pins = "-123456789";
 
     // Constructor //
 
@@ -24,110 +24,112 @@ public class ScoreCard {
     // Setters and getters of the class //
 
     public String getScoreCard() {
-        return scoreCard;
+        return this.scoreCard;
     }
 
     public int getTotalScore() {
-        return totalScore;
+        return this.totalScore;
+    }
+
+    public String getPins() {
+        return this.pins;
     }
 
     // Behaviours //
 
-    public boolean normalRoll(char roll) {
-        if (roll != 'X' && roll != '/') {
-            return true;
-        } else {
-            return false;
-        }
+    public int pinValue(char pin) {
+        return this.getPins().indexOf(pin);
     }
 
     public int computePins(char pin) {
-        return pins.indexOf(pin);
+        return this.pinValue(pin);
     }
 
-    public  boolean strike(char strike) {
-        if (strike == 'X') {
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isNormalRoll(char roll) {
+        return roll != 'X' && roll != '/';
+    }
+
+    public  boolean isStrike(Character strike) {
+        return strike.equals('X');
     }
 
     public int computeStrike(char strike) {
-        if (strike == 'X') {
-            return this.strike;
-        } else {
-            return this.zero;
-        }
+        return strike == 'X'? SYMBOLS.STRIKE.getValue() 
+                            : SYMBOLS.ZERO.getValue();
     }
 
-    public  boolean spare(char spare) {
-        if (spare == '/') {
-            return true;
-        } else {
-            return false;
-        }
+    public  boolean isSpare(char spare) {
+        return spare == '/';
     }
 
     public int computeSpare(char spare) {
-        if (spare == '/') {
-            return this.spare;
-        } else {
-            return this.zero;
-        }
+        return spare == '/' ? SYMBOLS.SPARE.getValue()
+                            : SYMBOLS.ZERO.getValue();
     }
 
-    public void sumTotalScore(int score) {
-        totalScore = totalScore + score;
+    public void updateTotalScore(int score) {
+        this.totalScore += score;
     }
 
-    public int bowlingCardScore(String scoreCard) {
+    public int calculateScore(String scoreCard) {
 
         for (int roll = 0; roll < scoreCard.length(); roll++) {
-            char result = scoreCard.charAt(roll);
+
+            char pin = scoreCard.charAt(roll);
 
             try {
-                // Here we check if the result of the actual roll are some normal pins.
-                if (normalRoll(result)) {
+                // Check if the result of the actual roll are a regular pin.
+                if (isNormalRoll(pin)) {
+
                     if (roll == 20 && scoreCard.charAt(19) == '/') {
                         break;
                     } else if (roll == scoreCard.length() - 2 && scoreCard.charAt(roll - 1) == 'X') {
                         break;
-                    } sumTotalScore(computePins(result));
+                    } updateTotalScore(computePins(pin));
+
                 }
                 // Here we check if the result of the actual roll is a Spare.
-                if (spare(result)) {
+                if (isSpare(pin)) {
+
                     char nextResult = scoreCard.charAt(roll + 1);
                     char previousResult = scoreCard.charAt(roll - 1);
-                    if (!strike(nextResult)) {
-                        sumTotalScore(computeSpare(result) + computePins(nextResult) - computePins(previousResult));
-                    } else if (strike(nextResult)) {
-                        sumTotalScore(computeSpare(result) + computeStrike(nextResult) - computePins(previousResult));
+                    if (isStrike(nextResult)) {
+                        updateTotalScore(computeSpare(pin) + computeStrike(nextResult) - computePins(previousResult));
+                    } else {
+                        updateTotalScore(computeSpare(pin) + computePins(nextResult) - computePins(previousResult));
                     }
+
                 }
                 // Here we check if the result of the actual roll is a Strike.
-                else if (strike(result)) {
+                else if (isStrike(pin)) {
+
                     char nextResult = scoreCard.charAt(roll + 1);
                     char nextResult2 = scoreCard.charAt(roll + 2);
-                    if (strike(nextResult) && strike(nextResult2)) {
-                        sumTotalScore(computeStrike(result) * 3);
+                    if (isStrike(nextResult) && isStrike(nextResult2)) {
+                        updateTotalScore(computeStrike(pin) * 3);
                     }
-                    else if (strike(nextResult) && !strike(nextResult2)) {
-                        sumTotalScore((computeStrike(result) * 2) + computePins(nextResult2));
+                    else if (isStrike(nextResult) && !isStrike(nextResult2)) {
+                        updateTotalScore((computeStrike(pin) * 2) + computePins(nextResult2));
                     }
-                    else if (normalRoll(nextResult) && strike(nextResult2)) {
-                        sumTotalScore(computePins(nextResult) + computeStrike(result) * 2);
+                    else if (isNormalRoll(nextResult) && isStrike(nextResult2)) {
+                        updateTotalScore(computePins(nextResult) + computeStrike(pin) * 2);
                     }
-                    else if (normalRoll(nextResult) && spare(nextResult2)) {
-                        sumTotalScore(computeStrike(result) + computeSpare(nextResult2));
+                    else if (isNormalRoll(nextResult) && isSpare(nextResult2)) {
+                        updateTotalScore(computeStrike(pin) + computeSpare(nextResult2));
                     }
-                    else if (normalRoll(nextResult) && normalRoll(nextResult2)) {
-                        sumTotalScore(computeStrike(result) + computePins(nextResult) + computePins(nextResult2));
-                    }
-                }
+                    else if (isNormalRoll(nextResult) && isNormalRoll(nextResult2)) {
+                        updateTotalScore(computeStrike(pin) + computePins(nextResult) + computePins(nextResult2));
+                    } else;
+
+                } else;
+
             } catch (IndexOutOfBoundsException e) {
-                return totalScore;
+                return getTotalScore();
             }
-        } return totalScore;
+
+        } 
+        
+        return getTotalScore();
     }
 }
+
